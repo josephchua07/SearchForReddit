@@ -1,0 +1,2 @@
+rootProject.name = "SearchForReddit"
+include ':app'
