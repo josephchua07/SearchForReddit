@@ -18,17 +18,5 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-
-        mainViewModel.getSubreddit("avengers/hot")
-
-        with(mainViewModel) {
-            posts.observe(this@MainActivity) {
-                println(this.findNoUpVotes())
-                println(this.findFivePlusUpVotes())
-                println(this.findNoComments())
-                println(this.findFivePlusComments())
-                println(this.findMostComments())
-            }
-        }
     }
 }

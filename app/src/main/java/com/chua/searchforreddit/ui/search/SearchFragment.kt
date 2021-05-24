@@ -5,12 +5,44 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.chua.searchforreddit.databinding.FragmentSearchBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
+
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val searchAdapter = SearchAdapter()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.searchRecyclerView.apply {
+            layoutManager = LinearLayoutManager(activity)
+            adapter = searchAdapter
+        }
+
+        binding.searchButton.setOnClickListener {
+            searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+        }
+
+        searchViewModel.posts.observe(viewLifecycleOwner) {
+
+            searchAdapter.updateDataSet(it)
+            searchAdapter.notifyDataSetChanged()
+
+            println(searchViewModel.findNoUpVotes())
+            println(searchViewModel.findFivePlusUpVotes())
+            println(searchViewModel.findNoComments())
+            println(searchViewModel.findFivePlusComments())
+            println(searchViewModel.findMostComments())
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
