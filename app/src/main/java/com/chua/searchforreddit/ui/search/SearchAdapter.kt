@@ -19,14 +19,15 @@ class SearchAdapter(private val navigate: (String) -> Unit) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(post: Post) {
-            binding.title.text = "Title: ${post.title}"
-            binding.upVotes.text = "UpVotes: ${post.ups}"
-            binding.comments.text = "Number of comments: ${post.num_comments}"
-            binding.root.setOnClickListener {
-                navigate(post.permalink.drop(1))
+            binding.apply {
+                title.text = "Title: ${post.title}"
+                upVotes.text = "Ups: ${post.ups}"
+                comments.text = "Number of comments: ${post.num_comments}"
+                root.setOnClickListener {
+                    navigate(post.permalink.drop(1))
+                }
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

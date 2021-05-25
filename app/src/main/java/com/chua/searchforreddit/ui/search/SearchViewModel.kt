@@ -23,6 +23,8 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+
+    //TODO: move to strings
     fun findNoUpVotes() =
         "${getSizeWhere { it.ups == 0 }} posts have no upvotes"
 

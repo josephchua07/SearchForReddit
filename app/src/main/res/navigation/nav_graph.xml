@@ -9,7 +9,7 @@
         android:id="@+id/blankFragment"
         android:name="com.chua.searchforreddit.ui.search.SearchFragment"
         android:label="fragment_blank"
-        tools:layout="@layout/fragment_search" >
+        tools:layout="@layout/fragment_search">
         <action
             android:id="@+id/action_blankFragment_to_webFragment"
             app:destination="@id/webFragment" />
@@ -19,7 +19,7 @@
         android:id="@+id/webFragment"
         android:name="com.chua.searchforreddit.ui.web.WebFragment"
         android:label="fragment_web"
-        tools:layout="@layout/fragment_web" >
+        tools:layout="@layout/fragment_web">
         <argument
             android:name="url"
             app:argType="string" />

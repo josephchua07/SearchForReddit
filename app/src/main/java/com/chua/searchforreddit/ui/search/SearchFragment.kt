@@ -18,6 +18,7 @@ class SearchFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val searchViewModel: SearchViewModel by viewModels()
+
     private val searchAdapter = SearchAdapter { url ->
         findNavController().navigate(SearchFragmentDirections.actionBlankFragmentToWebFragment(url))
     }
@@ -25,20 +26,23 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.searchRecyclerView.apply {
-            layoutManager = LinearLayoutManager(activity)
-            adapter = searchAdapter
-        }
+        binding.apply {
+            searchRecyclerView.apply {
+                layoutManager = LinearLayoutManager(activity)
+                adapter = searchAdapter
+            }
 
-        binding.searchButton.setOnClickListener {
-            searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+            searchButton.setOnClickListener {
+                searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+            }
         }
 
         searchViewModel.posts.observe(viewLifecycleOwner) {
+            searchAdapter
+                .apply { updateDataSet(it) }
+                .also { adapter -> adapter.notifyDataSetChanged() }
 
-            searchAdapter.updateDataSet(it)
-            searchAdapter.notifyDataSetChanged()
-
+            //simplify
             println(searchViewModel.findNoUpVotes())
             println(searchViewModel.findFivePlusUpVotes())
             println(searchViewModel.findNoComments())
