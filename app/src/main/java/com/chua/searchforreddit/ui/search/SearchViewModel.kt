@@ -1,8 +1,10 @@
 package com.chua.searchforreddit.ui.search
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chua.searchforreddit.domain.Status
 import com.chua.searchforreddit.domain.model.Post
 import com.chua.searchforreddit.domain.repository.RedditRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,36 +17,39 @@ class SearchViewModel @Inject constructor(
     private val redditRepository: RedditRepository
 ) : ViewModel() {
 
-    val posts: MutableLiveData<List<Post>> by lazy { MutableLiveData<List<Post>>() }
+    private val _status = MutableLiveData<Status>()
+    val status: LiveData<Status>
+        get() = _status
+
+    private val _posts = MutableLiveData<List<Post>>()
 
     fun getSubreddit(subreddit: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            posts.postValue(redditRepository.getPosts(subreddit))
+            try {
+                _status.postValue(Status.Loading)
+                redditRepository.getPosts(subreddit).let {
+                    _posts.postValue(it)
+                    _status.postValue(Status.Success(it))
+                }
+            } catch (e: Exception) {
+                _status.postValue(Status.Error(e))
+            }
         }
     }
 
+    fun findNoUpVotes() = getSizeWhere { it.ups == 0 }
 
-    //TODO: move to strings
-    fun findNoUpVotes() =
-        "${getSizeWhere { it.ups == 0 }} posts have no upvotes"
+    fun findFivePlusUpVotes() = getSizeWhere { it.ups > 5 }
 
-    fun findFivePlusUpVotes() =
-        "Great, ${getSizeWhere { it.ups > 5 }} post/s has more than 5 upvotes"
+    fun findNoComments() = getSizeWhere { it.num_comments == 0 }
 
-    fun findNoComments() =
-        "${getSizeWhere { it.num_comments == 0 }} posts have no comments"
+    fun findFivePlusComments() = getSizeWhere { it.num_comments > 5 }
 
-    fun findFivePlusComments() =
-        "Great, ${getSizeWhere { it.num_comments > 5 }} post/s has more than 5 comments"
-
-    fun findMostComments(): String? {
-        return posts.value
-            ?.maxByOrNull { it.num_comments }
-            ?.let { it.title to it.num_comments }
-            ?.let { "Great, ${it.first} has the most comments with ${it.second}" }
-    }
+    fun findMostComments() = _posts.value
+        ?.maxByOrNull { it.num_comments }
+        ?.let { it.title to it.num_comments }
 
     private fun getSizeWhere(action: (post: Post) -> Boolean) =
-        posts.value?.filter { action(it) }?.size ?: 0
+        _posts.value?.filter { action(it) }?.size ?: 0
 
 }

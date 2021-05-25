@@ -4,11 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.chua.searchforreddit.R
 import com.chua.searchforreddit.databinding.FragmentSearchBinding
+import com.chua.searchforreddit.domain.Status
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -37,17 +40,30 @@ class SearchFragment : Fragment() {
             }
         }
 
-        searchViewModel.posts.observe(viewLifecycleOwner) {
-            searchAdapter
-                .apply { updateDataSet(it) }
-                .also { adapter -> adapter.notifyDataSetChanged() }
+        searchViewModel.status.observe(viewLifecycleOwner) {
+            when (it) {
+                is Status.Loading -> {
+                    showLoading(true)
+                }
+                is Status.Error -> {
+                    showLoading(false)
+                    showDialog(it.e.message, resources.getString(R.string.error))
+                }
+                is Status.Success -> {
+                    showLoading(false)
+                    searchAdapter
+                        .apply { updateDataSet(it.data) }
+                        .also { adapter -> adapter.notifyDataSetChanged() }
 
-            //simplify
-            println(searchViewModel.findNoUpVotes())
-            println(searchViewModel.findFivePlusUpVotes())
-            println(searchViewModel.findNoComments())
-            println(searchViewModel.findFivePlusComments())
-            println(searchViewModel.findMostComments())
+                    showDetails(
+                        searchViewModel.findNoUpVotes(),
+                        searchViewModel.findFivePlusUpVotes(),
+                        searchViewModel.findNoComments(),
+                        searchViewModel.findFivePlusComments(),
+                        searchViewModel.findMostComments()
+                    )
+                }
+            }
         }
     }
 
@@ -62,5 +78,47 @@ class SearchFragment : Fragment() {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+    }
+
+    private fun showDetails(
+        noUpvotes: Int,
+        fivePlusUpvotes: Int,
+        noComments: Int,
+        fivePlusComments: Int,
+        mostComment: Pair<String, Int>?
+    ) {
+        val message = resources.getString(R.string.no_up_votes, noUpvotes) +
+                resources.getString(R.string.five_plus_votes, fivePlusUpvotes) +
+                resources.getString(R.string.no_comment, noComments) +
+                resources.getString(R.string.five_plus_comment, fivePlusComments) +
+                resources.getString(R.string.most_comment, mostComment?.first, mostComment?.second)
+
+        showDialog(message, resources.getString(R.string.success))
+    }
+
+    private fun showDialog(message: String?, title: String) {
+
+        val alertDialog: AlertDialog? = activity?.let {
+            val builder = AlertDialog.Builder(it)
+            builder.apply {
+                setPositiveButton(resources.getString(R.string.ok)) { _, _ -> }
+                setMessage(message)
+                setTitle(title)
+            }
+            builder.create()
+        }
+
+        alertDialog?.show()
+
+    }
+
+    private fun showLoading(loading: Boolean) {
+        if (loading) {
+            binding.searchProgressBar.visibility = View.VISIBLE
+            binding.searchButton.isEnabled = false
+        } else {
+            binding.searchProgressBar.visibility = View.GONE
+            binding.searchButton.isEnabled = true
+        }
     }
 }
