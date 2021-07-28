@@ -47,6 +47,6 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideRedditRepository(redditRepositoryImpl: RedditRepositoryImpl): RedditRepository =
-        redditRepositoryImpl
+    fun provideRedditRepository(service: RedditService): RedditRepository =
+        RedditRepositoryImpl(service)
 }
