@@ -1,8 +1,6 @@
 package com.chua.searchforreddit.di
 
 import com.chua.searchforreddit.BuildConfig
-import com.chua.searchforreddit.domain.repository.RedditRepository
-import com.chua.searchforreddit.domain.repository.RedditRepositoryImpl
 import com.chua.searchforreddit.domain.service.RedditService
 import dagger.Module
 import dagger.Provides
@@ -16,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class ApplicationModule {
+class NetworkModule {
 
     @Provides
     fun provideBaseUrl() = BuildConfig.BASE_URL
@@ -45,8 +43,4 @@ class ApplicationModule {
     fun provideRedditService(retrofit: Retrofit): RedditService =
         retrofit.create(RedditService::class.java)
 
-    @Provides
-    @Singleton
-    fun provideRedditRepository(service: RedditService): RedditRepository =
-        RedditRepositoryImpl(service)
 }
