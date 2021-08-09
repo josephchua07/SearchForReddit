@@ -5,6 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -35,8 +39,15 @@ class SearchFragment : Fragment() {
                 adapter = searchAdapter
             }
 
-            searchButton.setOnClickListener {
-                searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+            searchButton.apply {
+                setViewCompositionStrategy(
+                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
+                )
+                setContent {
+                    SearchButton {
+                        searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+                    }
+                }
             }
         }
 
@@ -119,6 +130,13 @@ class SearchFragment : Fragment() {
         } else {
             binding.searchProgressBar.visibility = View.GONE
             binding.searchButton.isEnabled = true
+        }
+    }
+
+    @Composable
+    private fun SearchButton(action: () -> Unit) {
+        Button(onClick = { action.invoke() }) {
+            Text(text = "Search")
         }
     }
 }
