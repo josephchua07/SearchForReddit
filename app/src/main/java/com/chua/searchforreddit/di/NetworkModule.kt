@@ -1,7 +1,11 @@
 package com.chua.searchforreddit.di
 
 import com.chua.searchforreddit.BuildConfig
-import com.chua.searchforreddit.domain.service.RedditService
+import com.chua.searchforreddit.domain.DomainMapper
+import com.chua.searchforreddit.domain.Post
+import com.chua.searchforreddit.domain.PostMapper
+import com.chua.searchforreddit.network.PostDto
+import com.chua.searchforreddit.service.RedditService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,5 +46,9 @@ class NetworkModule {
     @Singleton
     fun provideRedditService(retrofit: Retrofit): RedditService =
         retrofit.create(RedditService::class.java)
+
+    @Provides
+    @Singleton
+    fun providePostMapper(): DomainMapper<PostDto, Post> = PostMapper()
 
 }

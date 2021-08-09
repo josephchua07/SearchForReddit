@@ -11,7 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chua.searchforreddit.R
 import com.chua.searchforreddit.databinding.FragmentSearchBinding
-import com.chua.searchforreddit.domain.Status
+import com.chua.searchforreddit.network.Status
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

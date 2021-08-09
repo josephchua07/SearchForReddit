@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.chua.searchforreddit.databinding.PostItemBinding
-import com.chua.searchforreddit.domain.model.Post
+import com.chua.searchforreddit.domain.Post
 
 class SearchAdapter(private val navigate: (String) -> Unit) :
     RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
@@ -22,7 +22,7 @@ class SearchAdapter(private val navigate: (String) -> Unit) :
             binding.apply {
                 title.text = "Title: ${post.title}"
                 upVotes.text = "Ups: ${post.ups}"
-                comments.text = "Number of comments: ${post.num_comments}"
+                comments.text = "Number of comments: ${post.numComments}"
                 root.setOnClickListener {
                     navigate(post.permalink.drop(1))
                 }

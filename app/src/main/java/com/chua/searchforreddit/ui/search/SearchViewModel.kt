@@ -4,9 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.chua.searchforreddit.domain.Status
-import com.chua.searchforreddit.domain.model.Post
-import com.chua.searchforreddit.domain.repository.RedditRepository
+import com.chua.searchforreddit.domain.Post
+import com.chua.searchforreddit.network.Status
+import com.chua.searchforreddit.repository.RedditRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,8 +17,8 @@ class SearchViewModel @Inject constructor(
     private val redditRepository: RedditRepository
 ) : ViewModel() {
 
-    private val _status = MutableLiveData<Status>()
-    val status: LiveData<Status>
+    private val _status = MutableLiveData<Status<Post>>()
+    val status: LiveData<Status<Post>>
         get() = _status
 
     private val _posts = MutableLiveData<List<Post>>()
@@ -41,13 +41,13 @@ class SearchViewModel @Inject constructor(
 
     fun findFivePlusUpVotes() = getSizeWhere { it.ups > 5 }
 
-    fun findNoComments() = getSizeWhere { it.num_comments == 0 }
+    fun findNoComments() = getSizeWhere { it.numComments == 0 }
 
-    fun findFivePlusComments() = getSizeWhere { it.num_comments > 5 }
+    fun findFivePlusComments() = getSizeWhere { it.numComments > 5 }
 
     fun findMostComments() = _posts.value
-        ?.maxByOrNull { it.num_comments }
-        ?.let { it.title to it.num_comments }
+        ?.maxByOrNull { it.numComments }
+        ?.let { it.title to it.numComments }
 
     private fun getSizeWhere(action: (post: Post) -> Boolean) =
         _posts.value?.filter { action(it) }?.size ?: 0
