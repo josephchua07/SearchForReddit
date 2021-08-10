@@ -8,7 +8,8 @@ class PostMapper : DomainMapper<PostDto, Post> {
         data.title,
         data.ups,
         data.num_comments,
-        data.permalink
+        data.permalink,
+        data.thumbnail.let { if (it != "self") it else null }
     )
 
     override fun toListOfDomain(dataList: List<PostDto>) =

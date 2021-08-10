@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,12 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import coil.compose.rememberImagePainter
 import com.chua.searchforreddit.R
 import com.chua.searchforreddit.domain.Post
 import com.chua.searchforreddit.network.Status
@@ -110,13 +113,10 @@ class SearchFragment : Fragment() {
             Column(
                 modifier = Modifier.padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
-
             ) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -159,6 +159,9 @@ class SearchFragment : Fragment() {
     @Composable
     fun RedditTextField(label: String, value: String, onValueChange: (String) -> Unit) {
         OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth(0.75f)
+                .padding(4.dp),
             value = value,
             onValueChange = { onValueChange.invoke(it) },
             label = { Text(text = label) })
@@ -167,7 +170,7 @@ class SearchFragment : Fragment() {
     @Composable
     fun RedditButton(text: String, action: () -> Unit = {}) {
         Button(
-            modifier = Modifier.wrapContentSize(),
+            modifier = Modifier.fillMaxWidth(),
             onClick = { action.invoke() }) {
             Text(text = text)
         }
@@ -183,6 +186,7 @@ class SearchFragment : Fragment() {
                 Post(post = postList[index]) { url ->
                     action.invoke(url)
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -192,28 +196,52 @@ class SearchFragment : Fragment() {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(8.dp)
                 .clickable { action.invoke(post.url.drop(1)) },
             border = BorderStroke(2.dp, MaterialTheme.colors.onPrimary),
-            elevation = 5.dp
+            elevation = 8.dp
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(8.dp)
-            ) {
+            Column {
+
+                post.imageUrl?.let { imageUrl ->
+                    Image(
+                        painter = rememberImagePainter(
+                            data = imageUrl,
+                            onExecute = { _, _ -> true },
+                            builder = {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_baseline_image_24)
+                            }
+                        ),
+                        contentDescription = "Post Image",
+                        modifier = Modifier
+                            .height(240.dp)
+                            .fillMaxWidth(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
                 Text(
-                    text = "Title: ${post.title}",
+                    text = post.title,
+                    modifier = Modifier.padding(4.dp),
                     style = MaterialTheme.typography.h5
                 )
-                Text(
-                    text = "likes: ${post.likes}",
-                    style = MaterialTheme.typography.subtitle1
-                )
-                Text(
-                    text = "comments: ${post.comments}",
-                    style = MaterialTheme.typography.subtitle2
-                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "likes: ${post.likes}",
+                        modifier = Modifier.padding(4.dp),
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                    Text(
+                        text = "comments: ${post.comments}",
+                        modifier = Modifier.padding(4.dp),
+                        style = MaterialTheme.typography.subtitle1
+                    )
+                }
+
             }
         }
 
@@ -236,7 +264,6 @@ class SearchFragment : Fragment() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
@@ -254,7 +281,8 @@ class SearchFragment : Fragment() {
                             title = "Title",
                             likes = 1,
                             comments = 3,
-                            url = "url"
+                            url = "url",
+                            imageUrl = "image_url",
                         )
                     )
                 ) {}
