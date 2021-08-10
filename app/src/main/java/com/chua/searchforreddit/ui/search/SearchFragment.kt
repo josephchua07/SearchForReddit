@@ -1,5 +1,6 @@
 package com.chua.searchforreddit.ui.search
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -135,11 +137,24 @@ class SearchFragment : Fragment() {
     }
 
     @Composable
-    private fun SearchButton(action: () -> Unit) {
+    private fun SearchButton(action: () -> Unit = {}) {
         MdcTheme {
             Button(onClick = { action.invoke() }) {
                 Text(text = "Search")
             }
+        }
+    }
+
+    @Preview(name = "Light Mode")
+    @Preview(
+        uiMode = Configuration.UI_MODE_NIGHT_YES,
+        showBackground = true,
+        name = "Dark Mode"
+    )
+    @Composable
+    fun SearchScreen() {
+        MdcTheme {
+            SearchButton()
         }
     }
 
