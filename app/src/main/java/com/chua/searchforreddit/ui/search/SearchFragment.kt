@@ -227,7 +227,39 @@ class SearchFragment : Fragment() {
     )
     @Composable
     fun SearchScreenPreview() {
-        SearchScreen()
+        MdcTheme {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    RedditTextField(
+                        label = "subreddits/communities",
+                        value = "avengers/hot"
+                    ) {}
+
+                    RedditButton("Search")
+                }
+
+                PostList(
+                    postList = listOf(
+                        Post(
+                            title = "Title",
+                            likes = 1,
+                            comments = 3,
+                            url = "url"
+                        )
+                    )
+                ) {}
+            }
+        }
     }
 
 }
