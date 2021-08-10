@@ -6,27 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.chua.searchforreddit.R
-import com.chua.searchforreddit.databinding.FragmentSearchBinding
 import com.chua.searchforreddit.domain.Post
 import com.chua.searchforreddit.network.Status
 import com.google.android.material.composethemeadapter.MdcTheme
@@ -35,59 +30,17 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
 
-    private var _binding: FragmentSearchBinding? = null
-    private val binding get() = _binding!!
-
     private val searchViewModel: SearchViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.apply {
-            searchEditText.apply {
-                setViewCompositionStrategy(
-                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
-                )
-
-                setContent {
-                    SearchTextField(searchViewModel)
-                }
-            }
-
-            searchButton.apply {
-                setViewCompositionStrategy(
-                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
-                )
-                setContent {
-                    SearchButton {
-                        searchViewModel.searchText.value?.let {
-                            searchViewModel.getSubreddit(it)
-                        }
-                    }
-                }
-            }
-
-            searchRecyclerView.apply {
-                setViewCompositionStrategy(
-                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
-                )
-
-                setContent { PostList(searchViewModel) }
-            }
-        }
-
         searchViewModel.status.observe(viewLifecycleOwner) {
             when (it) {
-                is Status.Loading -> {
-                    showLoading(true)
-                }
                 is Status.Error -> {
-                    showLoading(false)
                     showDialog(it.e.message, resources.getString(R.string.error))
                 }
                 is Status.Success -> {
-                    showLoading(false)
-
                     showDetails(
                         searchViewModel.findNoUpVotes(),
                         searchViewModel.findFivePlusUpVotes(),
@@ -104,13 +57,12 @@ class SearchFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSearchBinding.inflate(inflater, container, false)
-        return binding.root
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
+        return ComposeView(requireContext()).apply {
+            setContent {
+                SearchScreen(viewModel = searchViewModel)
+            }
+        }
     }
 
     private fun showDetails(
@@ -145,45 +97,91 @@ class SearchFragment : Fragment() {
 
     }
 
-    private fun showLoading(loading: Boolean) {
-        if (loading) {
-            binding.searchProgressBar.visibility = View.VISIBLE
-            binding.searchButton.isEnabled = false
-        } else {
-            binding.searchProgressBar.visibility = View.GONE
-            binding.searchButton.isEnabled = true
+    @Composable
+    fun SearchScreen(viewModel: SearchViewModel = searchViewModel) {
+        val searchText = viewModel.searchText.observeAsState("")
+
+        val postList = viewModel.posts.observeAsState(emptyList())
+
+        val status = viewModel.status.observeAsState()
+
+        MdcTheme {
+
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    RedditTextField(
+                        label = "subreddits/communities",
+                        value = searchText.value
+                    ) {
+                        viewModel.setSearchText(it)
+                    }
+
+                    RedditButton("Search") {
+                        viewModel.getSubreddit(searchText.value)
+                    }
+                }
+
+                when (status.value) {
+
+                    is Status.Success -> {
+                        PostList(postList = postList.value) { url ->
+                            findNavController().navigate(
+                                SearchFragmentDirections.actionBlankFragmentToWebFragment(url)
+                            )
+                        }
+
+                        //show details
+                    }
+                    is Status.Loading -> {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        CircularProgressIndicator()
+                    }
+
+                    is Status.Error -> {
+                        //show alert dialog with error message
+                    }
+                }
+            }
         }
     }
 
     @Composable
-    fun SearchTextField(viewModel: SearchViewModel) {
-        val searchText = viewModel.searchText.observeAsState()
-
+    fun RedditTextField(label: String, value: String, onValueChange: (String) -> Unit) {
         OutlinedTextField(
-            value = searchText.value ?: "",
-            onValueChange = { viewModel.setSearchText(it) },
-            label = { Text(text = "subreddits/communities") })
+            value = value,
+            onValueChange = { onValueChange.invoke(it) },
+            label = { Text(text = label) })
     }
 
     @Composable
-    fun SearchButton(action: () -> Unit = {}) {
-        Button(onClick = { action.invoke() }) {
-            Text(text = "Search")
+    fun RedditButton(text: String, action: () -> Unit = {}) {
+        Button(
+            modifier = Modifier.wrapContentSize(),
+            onClick = { action.invoke() }) {
+            Text(text = text)
         }
     }
 
     @Composable
     fun PostList(
-        viewModel: SearchViewModel
+        postList: List<Post>,
+        action: (String) -> Unit
     ) {
-        val postsState: State<List<Post>> = viewModel.posts.observeAsState(emptyList())
-
         LazyColumn {
-            items(postsState.value.size) { index ->
-                Post(post = postsState.value[index]) { url ->
-                    findNavController().navigate(
-                        SearchFragmentDirections.actionBlankFragmentToWebFragment(url)
-                    )
+            items(postList.size) { index ->
+                Post(post = postList[index]) { url ->
+                    action.invoke(url)
                 }
             }
         }
@@ -191,24 +189,34 @@ class SearchFragment : Fragment() {
 
     @Composable
     fun Post(post: Post, action: (String) -> Unit = {}) {
-        Column(
+        Card(
             modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
                 .padding(8.dp)
-                .clickable { action.invoke(post.url.drop(1)) }
+                .clickable { action.invoke(post.url.drop(1)) },
+            border = BorderStroke(2.dp, MaterialTheme.colors.onPrimary),
+            elevation = 5.dp
         ) {
-            Text(
-                text = "Title: ${post.title}",
-                style = MaterialTheme.typography.h5
-            )
-            Text(
-                text = "likes: ${post.likes}",
-                style = MaterialTheme.typography.subtitle1
-            )
-            Text(
-                text = "comments: ${post.comments}",
-                style = MaterialTheme.typography.subtitle2
-            )
+            Column(
+                modifier = Modifier
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = "Title: ${post.title}",
+                    style = MaterialTheme.typography.h5
+                )
+                Text(
+                    text = "likes: ${post.likes}",
+                    style = MaterialTheme.typography.subtitle1
+                )
+                Text(
+                    text = "comments: ${post.comments}",
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
         }
+
     }
 
     @Preview(name = "Light Mode")
@@ -219,23 +227,7 @@ class SearchFragment : Fragment() {
     )
     @Composable
     fun SearchScreenPreview() {
-        MdcTheme {
-            Column {
-                Row {
-//                    SearchTextField()
-                    SearchButton()
-                }
-
-                Post(
-                    post = Post(
-                        title = "Title",
-                        comments = 5,
-                        likes = 3,
-                        url = "google.com"
-                    )
-                )
-            }
-        }
+        SearchScreen()
     }
 
 }
