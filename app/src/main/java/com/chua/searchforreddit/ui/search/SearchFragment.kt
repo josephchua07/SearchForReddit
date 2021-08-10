@@ -6,17 +6,23 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.chua.searchforreddit.R
 import com.chua.searchforreddit.databinding.FragmentSearchBinding
+import com.chua.searchforreddit.domain.Post
 import com.chua.searchforreddit.network.Status
 import com.google.android.material.composethemeadapter.MdcTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,8 +44,11 @@ class SearchFragment : Fragment() {
 
         binding.apply {
             searchRecyclerView.apply {
-                layoutManager = LinearLayoutManager(activity)
-                adapter = searchAdapter
+                setViewCompositionStrategy(
+                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
+                )
+
+                setContent { PostList(searchViewModel) }
             }
 
             searchButton.apply {
@@ -145,6 +154,36 @@ class SearchFragment : Fragment() {
         }
     }
 
+    @Composable
+    fun PostList(
+        viewModel: SearchViewModel
+    ) {
+        val postsState: State<List<Post>> = viewModel.posts.observeAsState(emptyList())
+
+        LazyColumn {
+            items(postsState.value.size) { index ->
+                Post(post = postsState.value[index]) { url ->
+                    findNavController().navigate(
+                        SearchFragmentDirections.actionBlankFragmentToWebFragment(url)
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun Post(post: Post, action: (String) -> Unit = {}) {
+        Column(
+            modifier = Modifier.clickable {
+                action.invoke(post.url.drop(1))
+            }
+        ) {
+            Text(text = "Title: ${post.title}")
+            Text(text = "likes: ${post.likes}")
+            Text(text = "comments: ${post.comments}")
+        }
+    }
+
     @Preview(name = "Light Mode")
     @Preview(
         uiMode = Configuration.UI_MODE_NIGHT_YES,
@@ -152,11 +191,12 @@ class SearchFragment : Fragment() {
         name = "Dark Mode"
     )
     @Composable
-    fun SearchScreen() {
+    fun SearchScreenPreview() {
         MdcTheme {
-            SearchButton()
+            Column {
+                SearchButton()
+            }
         }
     }
-
 
 }

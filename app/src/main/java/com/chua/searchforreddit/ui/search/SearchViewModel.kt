@@ -22,6 +22,7 @@ class SearchViewModel @Inject constructor(
         get() = _status
 
     private val _posts = MutableLiveData<List<Post>>()
+    val posts: LiveData<List<Post>> = _posts
 
     fun getSubreddit(subreddit: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -37,17 +38,17 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun findNoUpVotes() = getSizeWhere { it.ups == 0 }
+    fun findNoUpVotes() = getSizeWhere { it.likes == 0 }
 
-    fun findFivePlusUpVotes() = getSizeWhere { it.ups > 5 }
+    fun findFivePlusUpVotes() = getSizeWhere { it.likes > 5 }
 
-    fun findNoComments() = getSizeWhere { it.numComments == 0 }
+    fun findNoComments() = getSizeWhere { it.comments == 0 }
 
-    fun findFivePlusComments() = getSizeWhere { it.numComments > 5 }
+    fun findFivePlusComments() = getSizeWhere { it.comments > 5 }
 
     fun findMostComments() = _posts.value
-        ?.maxByOrNull { it.numComments }
-        ?.let { it.title to it.numComments }
+        ?.maxByOrNull { it.comments }
+        ?.let { it.title to it.comments }
 
     private fun getSizeWhere(action: (post: Post) -> Boolean) =
         _posts.value?.filter { action(it) }?.size ?: 0

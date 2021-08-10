@@ -21,10 +21,10 @@ class SearchAdapter(private val navigate: (String) -> Unit) :
         fun bind(post: Post) {
             binding.apply {
                 title.text = "Title: ${post.title}"
-                upVotes.text = "Ups: ${post.ups}"
-                comments.text = "Number of comments: ${post.numComments}"
+                upVotes.text = "Ups: ${post.likes}"
+                comments.text = "Number of comments: ${post.comments}"
                 root.setOnClickListener {
-                    navigate(post.permalink.drop(1))
+                    navigate(post.url.drop(1))
                 }
             }
         }

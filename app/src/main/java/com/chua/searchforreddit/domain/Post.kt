@@ -2,7 +2,7 @@ package com.chua.searchforreddit.domain
 
 data class Post(
     val title: String,
-    val ups: Int,
-    val numComments: Int,
-    val permalink: String
+    val likes: Int,
+    val comments: Int,
+    val url: String
 )
