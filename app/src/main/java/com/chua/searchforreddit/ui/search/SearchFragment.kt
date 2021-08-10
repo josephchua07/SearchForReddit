@@ -8,8 +8,10 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -17,6 +19,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnLifecycleDestroyed
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -174,13 +177,22 @@ class SearchFragment : Fragment() {
     @Composable
     fun Post(post: Post, action: (String) -> Unit = {}) {
         Column(
-            modifier = Modifier.clickable {
-                action.invoke(post.url.drop(1))
-            }
+            modifier = Modifier
+                .padding(8.dp)
+                .clickable { action.invoke(post.url.drop(1)) }
         ) {
-            Text(text = "Title: ${post.title}")
-            Text(text = "likes: ${post.likes}")
-            Text(text = "comments: ${post.comments}")
+            Text(
+                text = "Title: ${post.title}",
+                style = MaterialTheme.typography.h5
+            )
+            Text(
+                text = "likes: ${post.likes}",
+                style = MaterialTheme.typography.subtitle1
+            )
+            Text(
+                text = "comments: ${post.comments}",
+                style = MaterialTheme.typography.subtitle2
+            )
         }
     }
 
@@ -195,6 +207,14 @@ class SearchFragment : Fragment() {
         MdcTheme {
             Column {
                 SearchButton()
+                Post(
+                    post = Post(
+                        title = "Title",
+                        comments = 5,
+                        likes = 3,
+                        url = "google.com"
+                    )
+                )
             }
         }
     }
