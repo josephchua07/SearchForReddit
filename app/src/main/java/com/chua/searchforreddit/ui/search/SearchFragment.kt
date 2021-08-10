@@ -8,10 +8,12 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -46,12 +48,14 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.apply {
-            searchRecyclerView.apply {
+            searchEditText.apply {
                 setViewCompositionStrategy(
                     DisposeOnLifecycleDestroyed(viewLifecycleOwner)
                 )
 
-                setContent { PostList(searchViewModel) }
+                setContent {
+                    SearchTextField(searchViewModel)
+                }
             }
 
             searchButton.apply {
@@ -60,9 +64,19 @@ class SearchFragment : Fragment() {
                 )
                 setContent {
                     SearchButton {
-                        searchViewModel.getSubreddit(binding.searchEditText.text.toString())
+                        searchViewModel.searchText.value?.let {
+                            searchViewModel.getSubreddit(it)
+                        }
                     }
                 }
+            }
+
+            searchRecyclerView.apply {
+                setViewCompositionStrategy(
+                    DisposeOnLifecycleDestroyed(viewLifecycleOwner)
+                )
+
+                setContent { PostList(searchViewModel) }
             }
         }
 
@@ -149,11 +163,19 @@ class SearchFragment : Fragment() {
     }
 
     @Composable
-    private fun SearchButton(action: () -> Unit = {}) {
-        MdcTheme {
-            Button(onClick = { action.invoke() }) {
-                Text(text = "Search")
-            }
+    fun SearchTextField(viewModel: SearchViewModel) {
+        val searchText = viewModel.searchText.observeAsState()
+
+        OutlinedTextField(
+            value = searchText.value ?: "",
+            onValueChange = { viewModel.setSearchText(it) },
+            label = { Text(text = "subreddits/communities") })
+    }
+
+    @Composable
+    fun SearchButton(action: () -> Unit = {}) {
+        Button(onClick = { action.invoke() }) {
+            Text(text = "Search")
         }
     }
 
@@ -206,7 +228,11 @@ class SearchFragment : Fragment() {
     fun SearchScreenPreview() {
         MdcTheme {
             Column {
-                SearchButton()
+                Row {
+//                    SearchTextField()
+                    SearchButton()
+                }
+
                 Post(
                     post = Post(
                         title = "Title",

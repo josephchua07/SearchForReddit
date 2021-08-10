@@ -24,6 +24,13 @@ class SearchViewModel @Inject constructor(
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> = _posts
 
+    private val _searchText = MutableLiveData("avengers/hot")
+    val searchText: LiveData<String> = _searchText
+
+    fun setSearchText(text: String) {
+        _searchText.value = text
+    }
+
     fun getSubreddit(subreddit: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

@@ -9,12 +9,10 @@
         android:layout_height="match_parent"
         android:layout_margin="8dp">
 
-        <EditText
+        <androidx.compose.ui.platform.ComposeView
             android:id="@+id/searchEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Search subreddits/communities"
-            android:text="avengers/hot"
 
             app:layout_constraintBottom_toTopOf="@id/searchRecyclerView"
             app:layout_constraintEnd_toStartOf="@id/searchButton"
