@@ -40,10 +40,6 @@ class SearchFragment : Fragment() {
 
     private val searchViewModel: SearchViewModel by viewModels()
 
-    private val searchAdapter = SearchAdapter { url ->
-        findNavController().navigate(SearchFragmentDirections.actionBlankFragmentToWebFragment(url))
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -91,9 +87,6 @@ class SearchFragment : Fragment() {
                 }
                 is Status.Success -> {
                     showLoading(false)
-                    searchAdapter
-                        .apply { updateDataSet(it.data) }
-                        .also { adapter -> adapter.notifyDataSetChanged() }
 
                     showDetails(
                         searchViewModel.findNoUpVotes(),
