@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.chua.searchforreddit.R
 import com.chua.searchforreddit.databinding.FragmentSearchBinding
 import com.chua.searchforreddit.network.Status
+import com.google.android.material.composethemeadapter.MdcTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -135,8 +136,12 @@ class SearchFragment : Fragment() {
 
     @Composable
     private fun SearchButton(action: () -> Unit) {
-        Button(onClick = { action.invoke() }) {
-            Text(text = "Search")
+        MdcTheme {
+            Button(onClick = { action.invoke() }) {
+                Text(text = "Search")
+            }
         }
     }
+
+
 }
