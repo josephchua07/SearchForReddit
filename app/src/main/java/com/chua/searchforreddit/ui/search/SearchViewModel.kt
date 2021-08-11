@@ -30,19 +30,19 @@ class SearchViewModel @Inject constructor(
     private val _query: MutableState<String> = mutableStateOf("avengers/hot")
     val query: State<String> = _query
 
-    var preservedScrollState = 0
+    var scrollPosition = 0
 
     fun onQueryChange(text: String) {
         _query.value = text
     }
 
-    fun onSelectedSuggestionChange(suggestion: String, scrollState: Int) {
+    fun onSuggestionSelected(suggestion: String, scrollState: Int) {
         _query.value = suggestion
-        preservedScrollState = scrollState
-        search()
+        scrollPosition = scrollState
+        onExecuteSearch()
     }
 
-    fun search() {
+    fun onExecuteSearch() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _status.postValue(Status.Loading)

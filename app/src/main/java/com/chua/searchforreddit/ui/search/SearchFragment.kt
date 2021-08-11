@@ -128,30 +128,13 @@ class SearchFragment : Fragment() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                RedditTextField(
-                    label = "subreddits/communities",
-                    value = query,
-                    onValueChange = { viewModel.onQueryChange(it) },
-                    onKeyboardSearchClicked = viewModel::search
+                SearchAppBar(
+                    query = query,
+                    onQueryChange = viewModel::onQueryChange,
+                    onExecuteSearch = viewModel::onExecuteSearch,
+                    scrollPosition = viewModel.scrollPosition,
+                    onSuggestionSelected = viewModel::onSuggestionSelected
                 )
-
-                HorizontalSuggestions(
-                    suggestions = listOf(
-                        "wedding",
-                        "etoro",
-                        "food",
-                        "android",
-                        "iOS",
-                        "pokemon",
-                        "cryptocurrency",
-                        "happy",
-                        "mobile"
-                    ),
-                    selectedSuggestion = query,
-                    preservedScroll = viewModel.preservedScrollState
-                ) { selectedSuggestion, scrollState ->
-                    viewModel.onSelectedSuggestionChange(selectedSuggestion, scrollState)
-                }
 
                 when (status.value) {
 
@@ -174,6 +157,41 @@ class SearchFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    @ExperimentalComposeUiApi
+    @Composable
+    fun SearchAppBar(
+        query: String,
+        onQueryChange: (String) -> Unit,
+        onExecuteSearch: () -> Unit,
+        scrollPosition: Int,
+        onSuggestionSelected: (String, Int) -> Unit
+    ) {
+        RedditTextField(
+            label = "subreddits/communities",
+            value = query,
+            onValueChange = { onQueryChange(it) },
+            onKeyboardSearchClicked = onExecuteSearch
+        )
+
+        HorizontalSuggestions(
+            suggestions = listOf(
+                "wedding",
+                "etoro",
+                "food",
+                "android",
+                "iOS",
+                "pokemon",
+                "cryptocurrency",
+                "happy",
+                "mobile"
+            ),
+            selectedSuggestion = query,
+            preservedScroll = scrollPosition
+        ) { selectedSuggestion, scrollState ->
+            onSuggestionSelected(selectedSuggestion, scrollState)
         }
     }
 
