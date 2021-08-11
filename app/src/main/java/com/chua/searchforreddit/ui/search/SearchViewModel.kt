@@ -1,5 +1,8 @@
 package com.chua.searchforreddit.ui.search
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -24,18 +27,26 @@ class SearchViewModel @Inject constructor(
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> = _posts
 
-    private val _searchText = MutableLiveData("avengers/hot")
-    val searchText: LiveData<String> = _searchText
+    private val _query: MutableState<String> = mutableStateOf("avengers/hot")
+    val query: State<String> = _query
 
-    fun setSearchText(text: String) {
-        _searchText.value = text
+    var preservedScrollState = 0
+
+    fun onQueryChange(text: String) {
+        _query.value = text
     }
 
-    fun getSubreddit(subreddit: String) {
+    fun onSelectedSuggestionChange(suggestion: String, scrollState: Int) {
+        _query.value = suggestion
+        preservedScrollState = scrollState
+        search()
+    }
+
+    fun search() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _status.postValue(Status.Loading)
-                redditRepository.getPosts(subreddit).let {
+                redditRepository.getPosts(_query.value).let {
                     _posts.postValue(it)
                     _status.postValue(Status.Success(it))
                 }
