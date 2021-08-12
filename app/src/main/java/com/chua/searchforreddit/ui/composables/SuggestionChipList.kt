@@ -1,14 +1,14 @@
 package com.chua.searchforreddit.ui.composables
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -17,10 +17,10 @@ fun SuggestionChipList(
     suggestions: List<String>,
     selectedSuggestion: String?,
     preservedScroll: Int,
+    scrollState: ScrollState,
+    scope: CoroutineScope,
     onItemSelected: (String, Int) -> Unit
 ) {
-    val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .padding(8.dp)

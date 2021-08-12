@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -23,10 +23,9 @@ fun SearchTextField(
     value: String,
     modifier: Modifier,
     onValueChange: (String) -> Unit,
+    keyboardController: SoftwareKeyboardController?,
     onKeyboardSearchClicked: () -> Unit
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-
     OutlinedTextField(
         modifier = modifier
             .padding(4.dp),
