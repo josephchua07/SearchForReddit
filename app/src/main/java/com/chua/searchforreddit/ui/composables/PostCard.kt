@@ -48,7 +48,7 @@ fun PostCard(post: Post, action: (String) -> Unit = {}) {
             Text(
                 text = post.title,
                 modifier = Modifier.padding(4.dp),
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.h1
             )
 
             Row(
