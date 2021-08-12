@@ -1,12 +1,10 @@
 package com.chua.searchforreddit.ui.search
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
@@ -41,30 +39,11 @@ class SearchFragment : Fragment() {
 
     private val searchViewModel: SearchViewModel by viewModels()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        searchViewModel.status.observe(viewLifecycleOwner) {
-            when (it) {
-                is Status.Success -> {
-                    showDetails(
-                        searchViewModel.findNoUpVotes(),
-                        searchViewModel.findFivePlusUpVotes(),
-                        searchViewModel.findNoComments(),
-                        searchViewModel.findFivePlusComments(),
-                        searchViewModel.findMostComments()
-                    )
-                }
-            }
-        }
-    }
-
     @ExperimentalComposeUiApi
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
         return ComposeView(requireContext()).apply {
             setContent {
                 SearchScreen(viewModel = searchViewModel)
@@ -72,42 +51,11 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun showDetails(
-        noUpvotes: Int,
-        fivePlusUpvotes: Int,
-        noComments: Int,
-        fivePlusComments: Int,
-        mostComment: Pair<String, Int>?
-    ) {
-        val message = resources.getString(R.string.no_up_votes, noUpvotes) +
-                resources.getString(R.string.five_plus_votes, fivePlusUpvotes) +
-                resources.getString(R.string.no_comment, noComments) +
-                resources.getString(R.string.five_plus_comment, fivePlusComments) +
-                resources.getString(R.string.most_comment, mostComment?.first, mostComment?.second)
-
-        showDialog(message, resources.getString(R.string.success))
-    }
-
-    private fun showDialog(message: String?, title: String) {
-
-        val alertDialog: AlertDialog? = activity?.let {
-            val builder = AlertDialog.Builder(it)
-            builder.apply {
-                setPositiveButton(resources.getString(R.string.ok)) { _, _ -> }
-                setMessage(message)
-                setTitle(title)
-            }
-            builder.create()
-        }
-
-        alertDialog?.show()
-
-    }
-
     @SuppressLint("CoroutineCreationDuringComposition")
     @ExperimentalComposeUiApi
     @Composable
     fun SearchScreen(viewModel: SearchViewModel = searchViewModel) {
+
         val query = viewModel.query.value
 
         val postList = viewModel.posts.observeAsState(emptyList())
@@ -157,8 +105,55 @@ class SearchFragment : Fragment() {
                             )
                         }
 
-                        //show details
+                        scope.launch {
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = resources.getString(
+                                    R.string.no_up_votes,
+                                    searchViewModel.findNoUpVotes()
+                                ),
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
+
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = resources.getString(
+                                    R.string.five_plus_votes,
+                                    searchViewModel.findFivePlusUpVotes()
+                                ),
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
+
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = resources.getString(
+                                    R.string.no_comment,
+                                    searchViewModel.findNoComments()
+                                ),
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
+
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = resources.getString(
+                                    R.string.five_plus_comment,
+                                    searchViewModel.findFivePlusComments()
+                                ),
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
+
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = resources.getString(
+                                    R.string.most_comment,
+                                    searchViewModel.findMostComments()?.first,
+                                    searchViewModel.findMostComments()?.second
+                                ),
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
+                        }
                     }
+
                     is Status.Loading -> {
                         Spacer(modifier = Modifier.height(20.dp))
                         Row(
@@ -170,9 +165,12 @@ class SearchFragment : Fragment() {
                     }
 
                     is Status.Error -> {
-                        //show alert dialog with error message
                         scope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar("${(status.value as Status.Error).e}")
+                            scaffoldState.snackbarHostState.showSnackbar(
+                                message = "${(status.value as Status.Error).e}",
+                                actionLabel = "Hide",
+                                duration = SnackbarDuration.Indefinite
+                            )
                         }
                     }
                 }
@@ -181,15 +179,25 @@ class SearchFragment : Fragment() {
     }
 
     @ExperimentalComposeUiApi
-    @Preview(name = "Light Mode")
-    @Preview(
-        uiMode = Configuration.UI_MODE_NIGHT_YES,
-        showBackground = true,
-        name = "Dark Mode"
-    )
+    @SuppressLint("CoroutineCreationDuringComposition")
+    @Preview(name = "Light Theme")
     @Composable
-    fun SearchScreenPreview() {
-        AppTheme(app.isDark.value) {
+    fun LightTheme() {
+        SearchScreenPreview()
+    }
+
+    @ExperimentalComposeUiApi
+    @SuppressLint("CoroutineCreationDuringComposition")
+    @Preview(name = "Dark Theme")
+    @Composable
+    fun DarkTheme() {
+        SearchScreenPreview(true)
+    }
+
+    @ExperimentalComposeUiApi
+    @Composable
+    fun SearchScreenPreview(darkTheme: Boolean = false) {
+        AppTheme(darkTheme) {
             Scaffold(
                 topBar = {
                     SearchAppBar(
@@ -214,7 +222,8 @@ class SearchFragment : Fragment() {
                         onSuggestionSelected = { _, _ -> },
                         onToggleTheme = { app.toggleLightTheme() }
                     )
-                }) {
+                },
+            ) {
 
                 PostCardList(
                     postList = listOf(
@@ -224,10 +233,23 @@ class SearchFragment : Fragment() {
                             comments = 3,
                             url = "url",
                             imageUrl = "image_url",
+                        ),
+                        Post(
+                            title = "Title",
+                            likes = 1,
+                            comments = 3,
+                            url = "url",
+                            imageUrl = "image_url",
+                        ),
+                        Post(
+                            title = "Title",
+                            likes = 1,
+                            comments = 3,
+                            url = "url",
+                            imageUrl = "image_url",
                         )
                     )
                 ) {}
-
             }
         }
     }
