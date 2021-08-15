@@ -63,8 +63,6 @@ class SearchFragment : Fragment() {
 
         val statusState = viewModel.status.observeAsState()
 
-        val suggestions = viewModel.listOfSuggestions
-
         val scaffoldState = rememberScaffoldState()
 
         val suggestionsScrollState = rememberScrollState()
@@ -81,7 +79,7 @@ class SearchFragment : Fragment() {
                         onExecuteSearch = { viewModel.onTriggerEvent(ExecuteSearch) },
                         keyboardController = LocalSoftwareKeyboardController.current,
                         scrollPosition = viewModel.scrollPosition,
-                        suggestions = suggestions,
+                        suggestions = viewModel.listOfSuggestions,
                         suggestionsScrollState = suggestionsScrollState,
                         coroutineScope = scope,
                         onSuggestionSelected = { suggestion, scrollState ->

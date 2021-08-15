@@ -23,19 +23,15 @@ class SearchViewModel @Inject constructor(
     val status: LiveData<Status<Post>>
         get() = _status
 
-    private val _posts = MutableLiveData<List<Post>>()
-
     private val _query: MutableState<String> = mutableStateOf("avengers/hot")
     val query: State<String> = _query
 
     var scrollPosition = 0
-
     var noUpVotesCount = 0
     var fivePlusUpVotesCount = 0
     var noCommentsCount = 0
     var fivePlusCommentsCount = 0
     var mostComments: Pair<String, Int>? = null
-
     val listOfSuggestions = listOf(
         "food",
         "dog",
@@ -77,11 +73,9 @@ class SearchViewModel @Inject constructor(
 
     private suspend fun executeSearch() {
         _status.postValue(Status.Loading)
-        redditRepository.getPosts(_query.value).let {
-            _posts.value = it.also {
-                getCounts(it)
-                _status.postValue(Status.Success(data = it))
-            }
+        redditRepository.getPosts(_query.value).let { posts ->
+            getCounts(posts)
+            _status.postValue(Status.Success(data = posts))
         }
 
     }
