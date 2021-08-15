@@ -106,11 +106,11 @@ class SearchFragment : Fragment() {
                         showDetails(
                             scope = scope,
                             scaffoldState = scaffoldState,
-                            noUpVotesCount = status.noUpVotesCount,
-                            fivePlusUpVotesCount = status.fivePlusUpVotesCount,
-                            noCommentsCount = status.noCommentsCount,
-                            fivePlusCommentsCount = status.fivePlusCommentsCount,
-                            mostComments = status.mostComments
+                            noUpVotesCount = viewModel.noUpVotesCount,
+                            fivePlusUpVotesCount = viewModel.fivePlusUpVotesCount,
+                            noCommentsCount = viewModel.noCommentsCount,
+                            fivePlusCommentsCount = viewModel.fivePlusCommentsCount,
+                            mostComments = viewModel.mostComments
                         )
 
                     }

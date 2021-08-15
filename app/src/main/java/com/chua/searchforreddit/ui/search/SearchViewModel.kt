@@ -24,7 +24,6 @@ class SearchViewModel @Inject constructor(
         get() = _status
 
     private val _posts = MutableLiveData<List<Post>>()
-    val posts: LiveData<List<Post>> = _posts
 
     private val _query: MutableState<String> = mutableStateOf("avengers/hot")
     val query: State<String> = _query
@@ -79,33 +78,25 @@ class SearchViewModel @Inject constructor(
     private suspend fun executeSearch() {
         _status.postValue(Status.Loading)
         redditRepository.getPosts(_query.value).let {
-            _posts.value = it
-            getCounts()
-            _status.postValue(
-                Status.Success(
-                    data = it,
-                    noUpVotesCount = noUpVotesCount,
-                    fivePlusUpVotesCount = fivePlusUpVotesCount,
-                    noCommentsCount = noCommentsCount,
-                    fivePlusCommentsCount = fivePlusCommentsCount,
-                    mostComments = mostComments
-                )
-            )
+            _posts.value = it.also {
+                getCounts(it)
+                _status.postValue(Status.Success(data = it))
+            }
         }
 
     }
 
-    private fun getCounts() {
-        noUpVotesCount = getSizeWhere { it.likes == 0 }
-        fivePlusUpVotesCount = getSizeWhere { it.likes > 5 }
-        noCommentsCount = getSizeWhere { it.comments == 0 }
-        fivePlusCommentsCount = getSizeWhere { it.comments > 5 }
-        mostComments = _posts.value
-            ?.maxByOrNull { it.comments }
+    private fun getCounts(posts: List<Post>) {
+        noUpVotesCount = getSizeWhere(posts) { it.likes == 0 }
+        fivePlusUpVotesCount = getSizeWhere(posts) { it.likes > 5 }
+        noCommentsCount = getSizeWhere(posts) { it.comments == 0 }
+        fivePlusCommentsCount = getSizeWhere(posts) { it.comments > 5 }
+        mostComments = posts
+            .maxByOrNull { it.comments }
             ?.let { it.title to it.comments }
     }
 
-    private fun getSizeWhere(action: (post: Post) -> Boolean) =
-        _posts.value?.filter { action(it) }?.size ?: 0
+    private fun getSizeWhere(posts: List<Post>, action: (post: Post) -> Boolean) =
+        posts.filter { action(it) }.size
 
 }
