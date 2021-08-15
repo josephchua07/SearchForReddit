@@ -26,8 +26,11 @@ import com.chua.searchforreddit.domain.Post
 import com.chua.searchforreddit.network.Status
 import com.chua.searchforreddit.ui.composables.PostCardList
 import com.chua.searchforreddit.ui.composables.SearchAppBar
+import com.chua.searchforreddit.ui.search.SearchEvent.ExecuteSearch
+import com.chua.searchforreddit.ui.search.SearchEvent.QueryChange
 import com.chua.searchforreddit.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -58,21 +61,9 @@ class SearchFragment : Fragment() {
 
         val query = viewModel.query.value
 
-        val postList = viewModel.posts.observeAsState(emptyList())
+        val statusState = viewModel.status.observeAsState()
 
-        val status = viewModel.status.observeAsState()
-
-        val suggestions = listOf(
-            "wedding",
-            "etoro",
-            "food",
-            "android",
-            "iOS",
-            "pokemon",
-            "cryptocurrency",
-            "happy",
-            "mobile"
-        )
+        val suggestions = viewModel.listOfSuggestions
 
         val scaffoldState = rememberScaffoldState()
 
@@ -86,72 +77,42 @@ class SearchFragment : Fragment() {
                 topBar = {
                     SearchAppBar(
                         query = query,
-                        onQueryChange = viewModel::onQueryChange,
-                        onExecuteSearch = viewModel::onExecuteSearch,
+                        onQueryChange = { viewModel.onTriggerEvent(QueryChange(it)) },
+                        onExecuteSearch = { viewModel.onTriggerEvent(ExecuteSearch) },
                         keyboardController = LocalSoftwareKeyboardController.current,
                         scrollPosition = viewModel.scrollPosition,
                         suggestions = suggestions,
                         suggestionsScrollState = suggestionsScrollState,
                         coroutineScope = scope,
-                        onSuggestionSelected = viewModel::onSuggestionSelected,
+                        onSuggestionSelected = { suggestion, scrollState ->
+                            viewModel.onTriggerEvent(
+                                SearchEvent.SuggestionSelected(
+                                    suggestion,
+                                    scrollState
+                                )
+                            )
+                        },
                         onToggleTheme = { app.toggleLightTheme() }
                     )
                 }) {
-                when (status.value) {
+                when (val status = statusState.value) {
                     is Status.Success -> {
-                        PostCardList(postList = postList.value) { url ->
+                        PostCardList(postList = status.data) { url ->
                             findNavController().navigate(
                                 SearchFragmentDirections.actionBlankFragmentToWebFragment(url)
                             )
                         }
 
-                        scope.launch {
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = resources.getString(
-                                    R.string.no_up_votes,
-                                    searchViewModel.findNoUpVotes()
-                                ),
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Indefinite
-                            )
+                        showDetails(
+                            scope = scope,
+                            scaffoldState = scaffoldState,
+                            noUpVotesCount = status.noUpVotesCount,
+                            fivePlusUpVotesCount = status.fivePlusUpVotesCount,
+                            noCommentsCount = status.noCommentsCount,
+                            fivePlusCommentsCount = status.fivePlusCommentsCount,
+                            mostComments = status.mostComments
+                        )
 
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = resources.getString(
-                                    R.string.five_plus_votes,
-                                    searchViewModel.findFivePlusUpVotes()
-                                ),
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Indefinite
-                            )
-
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = resources.getString(
-                                    R.string.no_comment,
-                                    searchViewModel.findNoComments()
-                                ),
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Indefinite
-                            )
-
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = resources.getString(
-                                    R.string.five_plus_comment,
-                                    searchViewModel.findFivePlusComments()
-                                ),
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Indefinite
-                            )
-
-                            scaffoldState.snackbarHostState.showSnackbar(
-                                message = resources.getString(
-                                    R.string.most_comment,
-                                    searchViewModel.findMostComments()?.first,
-                                    searchViewModel.findMostComments()?.second
-                                ),
-                                actionLabel = "Hide",
-                                duration = SnackbarDuration.Indefinite
-                            )
-                        }
                     }
 
                     is Status.Loading -> {
@@ -167,7 +128,7 @@ class SearchFragment : Fragment() {
                     is Status.Error -> {
                         scope.launch {
                             scaffoldState.snackbarHostState.showSnackbar(
-                                message = "${(status.value as Status.Error).e}",
+                                message = "${status.e}",
                                 actionLabel = "Hide",
                                 duration = SnackbarDuration.Indefinite
                             )
@@ -176,6 +137,70 @@ class SearchFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showDetails(
+        scope: CoroutineScope,
+        scaffoldState: ScaffoldState,
+        noUpVotesCount: Int,
+        fivePlusUpVotesCount: Int,
+        noCommentsCount: Int,
+        fivePlusCommentsCount: Int,
+        mostComments: Pair<String, Int>?
+    ) {
+        scope.launch {
+            launchSnackBar(
+                scaffoldState,
+                resources.getString(
+                    R.string.no_up_votes,
+                    noUpVotesCount
+                )
+            )
+
+            launchSnackBar(
+                scaffoldState,
+                resources.getString(
+                    R.string.five_plus_votes,
+                    fivePlusUpVotesCount
+                )
+            )
+
+            launchSnackBar(
+                scaffoldState,
+                resources.getString(
+                    R.string.no_comment,
+                    noCommentsCount
+                )
+            )
+
+            launchSnackBar(
+                scaffoldState,
+                resources.getString(
+                    R.string.five_plus_comment,
+                    fivePlusCommentsCount
+                )
+            )
+
+            launchSnackBar(
+                scaffoldState,
+                resources.getString(
+                    R.string.most_comment,
+                    mostComments?.first,
+                    mostComments?.second
+                )
+            )
+        }
+    }
+
+    private suspend fun launchSnackBar(
+        scaffoldState: ScaffoldState,
+        message: String
+    ) {
+        scaffoldState.snackbarHostState.showSnackbar(
+            message = message,
+            actionLabel = "Hide",
+            duration = SnackbarDuration.Indefinite
+        )
     }
 
     @ExperimentalComposeUiApi
@@ -207,14 +232,15 @@ class SearchFragment : Fragment() {
                         keyboardController = null,
                         scrollPosition = 0,
                         suggestions = listOf(
-                            "wedding",
-                            "etoro",
                             "food",
-                            "android",
-                            "iOS",
-                            "pokemon",
-                            "cryptocurrency",
+                            "dog",
+                            "wedding",
                             "happy",
+                            "android",
+                            "pokemon",
+                            "etoro",
+                            "iOS",
+                            "cryptocurrency",
                             "mobile"
                         ),
                         suggestionsScrollState = rememberScrollState(),

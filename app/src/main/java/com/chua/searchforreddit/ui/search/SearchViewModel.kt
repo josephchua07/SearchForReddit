@@ -11,7 +11,6 @@ import com.chua.searchforreddit.domain.Post
 import com.chua.searchforreddit.network.Status
 import com.chua.searchforreddit.repository.RedditRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,23 +31,40 @@ class SearchViewModel @Inject constructor(
 
     var scrollPosition = 0
 
-    fun onQueryChange(text: String) {
-        _query.value = text
-    }
+    var noUpVotesCount = 0
+    var fivePlusUpVotesCount = 0
+    var noCommentsCount = 0
+    var fivePlusCommentsCount = 0
+    var mostComments: Pair<String, Int>? = null
 
-    fun onSuggestionSelected(suggestion: String, scrollState: Int) {
-        _query.value = suggestion
-        scrollPosition = scrollState
-        onExecuteSearch()
-    }
+    val listOfSuggestions = listOf(
+        "food",
+        "dog",
+        "wedding",
+        "happy",
+        "android",
+        "pokemon",
+        "etoro",
+        "iOS",
+        "cryptocurrency",
+        "mobile"
+    )
 
-    fun onExecuteSearch() {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun onTriggerEvent(event: SearchEvent) {
+        viewModelScope.launch {
             try {
-                _status.postValue(Status.Loading)
-                redditRepository.getPosts(_query.value).let {
-                    _posts.postValue(it)
-                    _status.postValue(Status.Success(it))
+                when (event) {
+                    is SearchEvent.ExecuteSearch -> {
+                        executeSearch()
+                    }
+                    is SearchEvent.SuggestionSelected -> {
+                        _query.value = event.suggestion
+                        scrollPosition = event.scrollState
+                        executeSearch()
+                    }
+                    is SearchEvent.QueryChange -> {
+                        _query.value = event.query
+                    }
                 }
             } catch (e: Exception) {
                 _status.postValue(Status.Error(e))
@@ -56,17 +72,34 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun findNoUpVotes() = getSizeWhere { it.likes == 0 }
+    private suspend fun executeSearch() {
+        _status.postValue(Status.Loading)
+        redditRepository.getPosts(_query.value).let {
+            _posts.value = it
+            getCounts()
+            _status.postValue(
+                Status.Success(
+                    data = it,
+                    noUpVotesCount = noUpVotesCount,
+                    fivePlusUpVotesCount = fivePlusUpVotesCount,
+                    noCommentsCount = noCommentsCount,
+                    fivePlusCommentsCount = fivePlusCommentsCount,
+                    mostComments = mostComments
+                )
+            )
+        }
 
-    fun findFivePlusUpVotes() = getSizeWhere { it.likes > 5 }
+    }
 
-    fun findNoComments() = getSizeWhere { it.comments == 0 }
-
-    fun findFivePlusComments() = getSizeWhere { it.comments > 5 }
-
-    fun findMostComments() = _posts.value
-        ?.maxByOrNull { it.comments }
-        ?.let { it.title to it.comments }
+    private fun getCounts() {
+        noUpVotesCount = getSizeWhere { it.likes == 0 }
+        fivePlusUpVotesCount = getSizeWhere { it.likes > 5 }
+        noCommentsCount = getSizeWhere { it.comments == 0 }
+        fivePlusCommentsCount = getSizeWhere { it.comments > 5 }
+        mostComments = _posts.value
+            ?.maxByOrNull { it.comments }
+            ?.let { it.title to it.comments }
+    }
 
     private fun getSizeWhere(action: (post: Post) -> Boolean) =
         _posts.value?.filter { action(it) }?.size ?: 0
