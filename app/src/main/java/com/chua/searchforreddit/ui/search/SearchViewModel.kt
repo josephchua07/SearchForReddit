@@ -50,6 +50,10 @@ class SearchViewModel @Inject constructor(
         "mobile"
     )
 
+    init {
+        onTriggerEvent(SearchEvent.ExecuteSearch)
+    }
+
     fun onTriggerEvent(event: SearchEvent) {
         viewModelScope.launch {
             try {
