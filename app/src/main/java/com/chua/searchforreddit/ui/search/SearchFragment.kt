@@ -104,10 +104,6 @@ class SearchFragment : Fragment() {
                         showDetails(
                             scope = scope,
                             scaffoldState = scaffoldState,
-                            noUpVotesCount = viewModel.noUpVotesCount,
-                            fivePlusUpVotesCount = viewModel.fivePlusUpVotesCount,
-                            noCommentsCount = viewModel.noCommentsCount,
-                            fivePlusCommentsCount = viewModel.fivePlusCommentsCount,
                             mostComments = viewModel.mostComments
                         )
 
@@ -140,45 +136,9 @@ class SearchFragment : Fragment() {
     private fun showDetails(
         scope: CoroutineScope,
         scaffoldState: ScaffoldState,
-        noUpVotesCount: Int,
-        fivePlusUpVotesCount: Int,
-        noCommentsCount: Int,
-        fivePlusCommentsCount: Int,
         mostComments: Pair<String, Int>?
     ) {
         scope.launch {
-            launchSnackBar(
-                scaffoldState,
-                resources.getString(
-                    R.string.no_up_votes,
-                    noUpVotesCount
-                )
-            )
-
-            launchSnackBar(
-                scaffoldState,
-                resources.getString(
-                    R.string.five_plus_votes,
-                    fivePlusUpVotesCount
-                )
-            )
-
-            launchSnackBar(
-                scaffoldState,
-                resources.getString(
-                    R.string.no_comment,
-                    noCommentsCount
-                )
-            )
-
-            launchSnackBar(
-                scaffoldState,
-                resources.getString(
-                    R.string.five_plus_comment,
-                    fivePlusCommentsCount
-                )
-            )
-
             launchSnackBar(
                 scaffoldState,
                 resources.getString(

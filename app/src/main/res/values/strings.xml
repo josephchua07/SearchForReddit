@@ -1,11 +1,7 @@
 <resources>
     <string name="app_name">SearchForReddit</string>
 
-    <string name="no_up_votes">%d posts have no upvotes.\n</string>
-    <string name="five_plus_votes">Great, %d post/s has more than 5 upvotes.\n</string>
-    <string name="no_comment">%d posts have no comments.\n</string>
-    <string name="five_plus_comment">Great, %d post/s has more than 5 comments.\n</string>
-    <string name="most_comment">Great, "%s" has the most comments with %d. </string>
+    <string name="most_comment">"%s" has the most comments with %d. </string>
 
     <string name="success">Success</string>
     <string name="error">Error</string>

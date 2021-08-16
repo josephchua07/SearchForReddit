@@ -5,5 +5,5 @@ data class PostDto(
     val ups: Int,
     val num_comments: Int,
     val permalink: String,
-    val thumbnail: String
+    val url: String
 )

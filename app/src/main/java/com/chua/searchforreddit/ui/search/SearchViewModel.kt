@@ -23,14 +23,10 @@ class SearchViewModel @Inject constructor(
     val status: LiveData<Status<Post>>
         get() = _status
 
-    private val _query: MutableState<String> = mutableStateOf("avengers/hot")
+    private val _query: MutableState<String> = mutableStateOf("food")
     val query: State<String> = _query
 
     var scrollPosition = 0
-    var noUpVotesCount = 0
-    var fivePlusUpVotesCount = 0
-    var noCommentsCount = 0
-    var fivePlusCommentsCount = 0
     var mostComments: Pair<String, Int>? = null
     val listOfSuggestions = listOf(
         "food",
@@ -38,6 +34,7 @@ class SearchViewModel @Inject constructor(
         "wedding",
         "happy",
         "android",
+        "avengers",
         "pokemon",
         "etoro",
         "iOS",
@@ -81,16 +78,9 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun getCounts(posts: List<Post>) {
-        noUpVotesCount = getSizeWhere(posts) { it.likes == 0 }
-        fivePlusUpVotesCount = getSizeWhere(posts) { it.likes > 5 }
-        noCommentsCount = getSizeWhere(posts) { it.comments == 0 }
-        fivePlusCommentsCount = getSizeWhere(posts) { it.comments > 5 }
         mostComments = posts
             .maxByOrNull { it.comments }
             ?.let { it.title to it.comments }
     }
-
-    private fun getSizeWhere(posts: List<Post>, action: (post: Post) -> Boolean) =
-        posts.filter { action(it) }.size
 
 }

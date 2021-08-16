@@ -39,16 +39,16 @@ fun PostCard(post: Post, action: (String) -> Unit = {}) {
                     ),
                     contentDescription = "Post Image",
                     modifier = Modifier
-                        .height(240.dp)
+                        .height(300.dp)
                         .fillMaxWidth(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.FillWidth
                 )
             }
 
             Text(
                 text = post.title,
                 modifier = Modifier.padding(4.dp),
-                style = MaterialTheme.typography.h1
+                style = MaterialTheme.typography.h2
             )
 
             Row(
