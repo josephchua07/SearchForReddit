@@ -1,4 +1,4 @@
-package com.chua.searchforreddit.foo.level2;
+package com.chua.searchforreddit.foo.level2.problem1;
 
 public class Solution {
     public static int solution(int total_lambs) {
